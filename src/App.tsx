@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Trophy, RotateCcw, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { initAudio, playEatSound, playCrashSound } from './audio';
 
 const GRID_SIZE = 20;
 const INITIAL_SNAKE = [
@@ -67,6 +68,7 @@ export default function App() {
   }, [generateFood]);
 
   const handleGameOver = useCallback(() => {
+    playCrashSound();
     setGameOver(true);
     setIsStarted(false);
     if (score > highScore) {
@@ -76,6 +78,7 @@ export default function App() {
   }, [score, highScore]);
 
   const resetGame = () => {
+    initAudio();
     setSnake(INITIAL_SNAKE);
     setDirection(INITIAL_DIRECTION);
     lastProcessedDirectionRef.current = INITIAL_DIRECTION;
@@ -87,6 +90,7 @@ export default function App() {
   };
 
   const handleDirectionInput = useCallback((newDir: Point) => {
+    initAudio();
     if (!isStarted && !gameOver) {
       setIsStarted(true);
     }
@@ -135,7 +139,10 @@ export default function App() {
           handleDirectionInput({ x: 1, y: 0 });
           break;
         case ' ':
-          if (!isStarted && !gameOver) setIsStarted(true);
+          if (!isStarted && !gameOver) {
+            initAudio();
+            setIsStarted(true);
+          }
           break;
       }
     };
@@ -180,6 +187,7 @@ export default function App() {
 
       // Check food collision
       if (newHead.x === currentFood.x && newHead.y === currentFood.y) {
+        playEatSound();
         setScore((s) => s + 10);
         setSpeed((s) => Math.max(MIN_SPEED, s - SPEED_DECREMENT));
         setFood(generateFood(newSnake));
@@ -253,7 +261,10 @@ export default function App() {
           {(!isStarted && !gameOver && score === 0) && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/40 backdrop-blur-sm rounded-xl">
               <button 
-                onClick={() => setIsStarted(true)}
+                onClick={() => {
+                  initAudio();
+                  setIsStarted(true);
+                }}
                 className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-400 text-neutral-950 font-bold rounded-full transition-transform active:scale-95 cursor-pointer"
               >
                 <Play className="w-5 h-5 fill-current" />
